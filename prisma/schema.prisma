@@ -1,0 +1,202 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  name                String
+  email               String               @unique
+  passwordHash        String
+  phone               String?
+  role                String               @default("CUSTOMER") // ADMIN, TECHNICIAN, CUSTOMER
+  address             String?
+  isActive            Boolean              @default(true)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  technicianProfile   TechnicianProfile?
+  serviceRequests     ServiceRequest[]     @relation("CustomerRequests")
+  assignedServices    ServiceRequest[]     @relation("TechnicianRequests")
+  statusHistories     StatusHistory[]
+  notifications       Notification[]
+  passwordResetTokens PasswordResetToken[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model TechnicianProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialization String   @default("ALL") // LAPTOP, SMARTPHONE, ALL
+  bio            String?
+  isAvailable    Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ServiceType {
+  id                String           @id @default(cuid())
+  name              String
+  deviceType        String           @default("BOTH") // LAPTOP, SMARTPHONE, BOTH
+  description       String
+  basePrice         Int              // In IDR (Rupiah)
+  estimatedDuration String           // e.g. "1 - 2 Hari"
+  isActive          Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  serviceRequests   ServiceRequest[]
+
+  @@index([deviceType])
+  @@index([isActive])
+}
+
+model ServiceRequest {
+  id                  String           @id @default(cuid())
+  serviceNumber       String           @unique // e.g. SRV-20261011-9214
+  customerId          String
+  customer            User             @relation("CustomerRequests", fields: [customerId], references: [id], onDelete: Restrict)
+  technicianId        String?
+  technician          User?            @relation("TechnicianRequests", fields: [technicianId], references: [id], onDelete: SetNull)
+  serviceTypeId       String?
+  serviceType         ServiceType?     @relation(fields: [serviceTypeId], references: [id], onDelete: SetNull)
+  
+  deviceType          String           // LAPTOP, SMARTPHONE
+  brand               String
+  model               String
+  serialNumber        String?
+  complaint           String
+  initialCondition    String
+  devicePhotoUrl      String?
+  handoverMethod      String           @default("DROP_OFF") // DROP_OFF, PICKUP
+  
+  status              String           @default("PENDING")
+  // PENDING, ASSIGNED, IN_DIAGNOSIS, WAITING_FOR_APPROVAL, IN_REPAIR, WAITING_FOR_PARTS, REPAIR_COMPLETED, READY_FOR_PICKUP, COMPLETED, CANCELLED
+  priority            String           @default("NORMAL") // NORMAL, HIGH, URGENT
+  
+  estimatedCost       Int?
+  finalCost           Int?
+  estimatedCompletion DateTime?
+  isCancelled         Boolean          @default(false)
+  cancellationReason  String?
+  
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  diagnosis           Diagnosis?
+  costEstimates       CostEstimate[]
+  repairLogs          RepairLog[]
+  statusHistories     StatusHistory[]
+  payments            Payment[]
+
+  @@index([customerId])
+  @@index([technicianId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Diagnosis {
+  id                String         @id @default(cuid())
+  serviceRequestId  String         @unique
+  serviceRequest    ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  technicianId      String
+  summary           String
+  detailedFindings  String
+  recommendedAction String
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model CostEstimate {
+  id               String         @id @default(cuid())
+  serviceRequestId String
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  estimatedAmount  Int
+  breakdown        String?
+  status           String         @default("PENDING") // PENDING, APPROVED, REJECTED
+  customerNotes    String?
+  decidedAt        DateTime?
+  createdAt        DateTime       @default(now())
+
+  @@index([serviceRequestId])
+}
+
+model RepairLog {
+  id               String         @id @default(cuid())
+  serviceRequestId String
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  technicianId     String
+  actionTaken      String
+  partsReplaced    String?
+  notes            String?
+  photoUrl         String?
+  createdAt        DateTime       @default(now())
+
+  @@index([serviceRequestId])
+}
+
+model StatusHistory {
+  id               String         @id @default(cuid())
+  serviceRequestId String
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  actorId          String?
+  actor            User?          @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  fromStatus       String
+  toStatus         String
+  notes            String?
+  createdAt        DateTime       @default(now())
+
+  @@index([serviceRequestId])
+}
+
+model Payment {
+  id               String         @id @default(cuid())
+  serviceRequestId String
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  invoiceNumber    String         @unique
+  amount           Int
+  paymentMethod    String         @default("CASH") // CASH, TRANSFER, QRIS
+  paymentStatus    String         @default("PENDING") // PENDING, PAID, FAILED
+  paidAt           DateTime?
+  notes            String?
+  recordedById     String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([serviceRequestId])
+  @@index([paymentStatus])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  type      String   @default("INFO")
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([token])
+}
