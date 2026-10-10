@@ -7,7 +7,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { CustomerCancelServiceButton } from "./CustomerCancelServiceButton";
 import { formatTanggal, formatRupiah } from "@/lib/utils";
 import { redirect } from "next/navigation";
-import { Search, Laptop, Smartphone, Eye, PlusCircle } from "lucide-react";
+import { Search, Laptop, Smartphone, Eye, PlusCircle, Receipt } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +41,7 @@ export default async function CustomerServisPage({ searchParams }: Props) {
     },
     include: {
       technician: { select: { name: true } },
+      payments: { orderBy: { createdAt: "desc" } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -176,6 +177,22 @@ export default async function CustomerServisPage({ searchParams }: Props) {
 
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {req.payments && req.payments.some((p: any) => p.paymentStatus === "PAID") && (
+                            <Link
+                              href={`/struk/${req.payments.find((p: any) => p.paymentStatus === "PAID")?.receiptNumber || req.payments.find((p: any) => p.paymentStatus === "PAID")?.id}`}
+                              target="_blank"
+                            >
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 text-xs px-2.5 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 border-emerald-200"
+                              >
+                                <Receipt className="h-3 w-3 mr-1" />
+                                Struk
+                              </Button>
+                            </Link>
+                          )}
+
                           <Link href={`/customer/tracking?search=${req.serviceNumber}`}>
                             <Button variant="outline" size="sm" className="h-8 text-xs px-2.5">
                               <Search className="h-3 w-3 mr-1 text-blue-600" />

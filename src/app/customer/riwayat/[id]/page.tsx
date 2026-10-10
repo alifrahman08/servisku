@@ -16,6 +16,7 @@ import {
   CreditCard,
   Activity,
   ShieldCheck,
+  Receipt,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -248,15 +249,25 @@ export default async function CustomerRiwayatDetailPage({ params }: Props) {
               </div>
 
               {service.payments.map((p) => (
-                <div key={p.id} className="p-2.5 rounded-lg bg-emerald-50/60 border border-emerald-100 text-[11px] text-emerald-900 space-y-0.5">
+                <div key={p.id} className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100 text-[11px] text-emerald-900 space-y-2">
                   <div className="flex justify-between font-mono font-bold">
-                    <span>{p.invoiceNumber}</span>
+                    <span>{p.receiptNumber || p.invoiceNumber}</span>
                     <span>{formatRupiah(p.amount)}</span>
                   </div>
                   <div className="flex justify-between text-emerald-700 text-[10px]">
                     <span>Metode: {p.paymentMethod}</span>
                     <span>{formatTanggalWaktu(p.paidAt)}</span>
                   </div>
+                  {p.paymentStatus === "PAID" && (
+                    <Link
+                      href={`/struk/${p.receiptNumber || p.id}`}
+                      target="_blank"
+                      className="inline-flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-sm transition"
+                    >
+                      <Receipt className="h-3.5 w-3.5" />
+                      Lihat & Cetak Struk Resmi
+                    </Link>
+                  )}
                 </div>
               ))}
             </div>

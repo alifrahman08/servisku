@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatTanggal, formatRupiah } from "@/lib/utils";
 import { redirect } from "next/navigation";
-import { Laptop, Smartphone, Eye, CheckCircle2 } from "lucide-react";
+import { Laptop, Smartphone, Eye, CheckCircle2, Receipt } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +22,10 @@ export default async function CustomerRiwayatPage() {
     include: {
       technician: { select: { name: true } },
       serviceType: { select: { name: true } },
+      payments: {
+        where: { paymentStatus: "PAID" },
+        take: 1,
+      },
     },
     orderBy: { updatedAt: "desc" },
   });
@@ -85,12 +89,29 @@ export default async function CustomerRiwayatPage() {
                       <StatusBadge status={req.status} />
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <Link href={`/customer/riwayat/${req.id}`}>
-                        <Button variant="outline" size="sm" className="h-8 text-xs px-2.5">
-                          <Eye className="h-3 w-3 mr-1" />
-                          Rincian
-                        </Button>
-                      </Link>
+                      <div className="inline-flex items-center justify-end gap-1.5">
+                        {req.payments && req.payments.length > 0 && (
+                          <Link
+                            href={`/struk/${req.payments[0].receiptNumber || req.payments[0].id}`}
+                            target="_blank"
+                          >
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs px-2.5 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 border-emerald-200"
+                            >
+                              <Receipt className="h-3 w-3 mr-1" />
+                              Struk
+                            </Button>
+                          </Link>
+                        )}
+                        <Link href={`/customer/riwayat/${req.id}`}>
+                          <Button variant="outline" size="sm" className="h-8 text-xs px-2.5">
+                            <Eye className="h-3 w-3 mr-1" />
+                            Rincian
+                          </Button>
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))

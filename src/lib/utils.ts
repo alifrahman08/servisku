@@ -125,3 +125,51 @@ export function getStatusBadge(status: string): { label: string; bg: string; tex
       };
   }
 }
+
+export function getPaymentStatusBadge(status: string): { label: string; bg: string; text: string; border: string } {
+  switch (status) {
+    case "PAID":
+      return {
+        label: "Lunas",
+        bg: "bg-emerald-50",
+        text: "text-emerald-700",
+        border: "border-emerald-200",
+      };
+    case "PENDING_VERIFICATION":
+      return {
+        label: "Menunggu Verifikasi",
+        bg: "bg-amber-50",
+        text: "text-amber-700",
+        border: "border-amber-200",
+      };
+    case "REJECTED":
+      return {
+        label: "Ditolak",
+        bg: "bg-rose-50",
+        text: "text-rose-700",
+        border: "border-rose-200",
+      };
+    case "FAILED":
+      return {
+        label: "Gagal",
+        bg: "bg-rose-50",
+        text: "text-rose-700",
+        border: "border-rose-200",
+      };
+    case "REFUNDED":
+      return {
+        label: "Dikembalikan",
+        bg: "bg-purple-50",
+        text: "text-purple-700",
+        border: "border-purple-200",
+      };
+    case "UNPAID":
+    default:
+      return {
+        label: "Belum Dibayar",
+        bg: "bg-slate-100",
+        text: "text-slate-700",
+        border: "border-slate-200",
+      };
+  }
+}

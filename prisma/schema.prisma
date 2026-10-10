@@ -161,17 +161,40 @@ model Payment {
   serviceRequestId String
   serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
   invoiceNumber    String         @unique
+  receiptNumber    String?        @unique
   amount           Int
   paymentMethod    String         @default("CASH") // CASH, TRANSFER, QRIS
-  paymentStatus    String         @default("PENDING") // PENDING, PAID, FAILED
+  paymentStatus    String         @default("PENDING") // UNPAID, PENDING_VERIFICATION, PAID, REJECTED, FAILED
   paidAt           DateTime?
+  proofUrl         String?        // Path/URL bukti pembayaran (Transfer / QRIS)
+  proofFileName    String?
+  referenceNumber  String?        // Nomor referensi transaksi dari customer
+  rejectionReason  String?        // Alasan penolakan dari admin jika ditolak
   notes            String?
   recordedById     String?
+  verifiedById     String?
+  verifiedAt       DateTime?
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
   @@index([serviceRequestId])
   @@index([paymentStatus])
+  @@index([receiptNumber])
+}
+
+model StorePaymentSetting {
+  id                String   @id @default("default")
+  storeName         String   @default("ServisKu Workshop")
+  storeAddress      String   @default("Jl. Sudirman No. 45, Jakarta Pusat")
+  storePhone        String   @default("0812-3456-7890")
+  storeEmail        String   @default("layanan@servisku.com")
+  bankName          String   @default("Bank Mandiri")
+  bankAccountNumber String   @default("1440028395116")
+  bankAccountHolder String   @default("ALIF NOOR RAHMAN HAMID")
+  qrisMerchantName  String   @default("ServisKu / ALIF NOOR RAHMAN HAMID")
+  qrisImageUrl      String   @default("/images/qris-merchant.png")
+  warrantyTerms     String   @default("Garansi servis & suku cadang berlaku 30 - 90 hari sesuai jenis tindakan. Harap simpan struk ini sebagai bukti klaim garansi resmi.")
+  updatedAt         DateTime @updatedAt
 }
 
 model Notification {

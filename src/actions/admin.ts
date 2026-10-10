@@ -211,16 +211,22 @@ export async function recordPaymentAction(formData: FormData) {
     if (!service) return { success: false, error: "Servis tidak ditemukan" };
 
     const invoiceNumber = `INV-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+    const now = new Date();
+    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const receiptNumber = `STRUK-${yearMonth}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const ops: any[] = [
       prisma.payment.create({
         data: {
           serviceRequestId,
           invoiceNumber,
+          receiptNumber,
           amount,
           paymentMethod,
           paymentStatus: "PAID",
-          paidAt: new Date(),
+          paidAt: now,
+          verifiedById: admin.id,
+          verifiedAt: now,
           notes,
           recordedById: admin.id,
         },

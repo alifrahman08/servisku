@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { CustomerTrackingClient } from "./CustomerTrackingClient";
 import { redirect } from "next/navigation";
+import { getStorePaymentSettings } from "@/actions/payment";
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +79,9 @@ export default async function CustomerTrackingPage({ searchParams }: Props) {
     orderBy: { createdAt: "desc" },
   });
 
+  // Fetch store payment settings for Mandiri & QRIS details
+  const storeSettings = await getStorePaymentSettings();
+
   return (
     <div className="space-y-6">
       <div>
@@ -93,6 +97,13 @@ export default async function CustomerTrackingPage({ searchParams }: Props) {
         service={activeService}
         myServices={myServices}
         initialSearch={search}
+        storeSettings={{
+          bankName: storeSettings.bankName,
+          bankAccountNumber: storeSettings.bankAccountNumber,
+          bankAccountHolder: storeSettings.bankAccountHolder,
+          qrisMerchantName: storeSettings.qrisMerchantName,
+          qrisImageUrl: storeSettings.qrisImageUrl,
+        }}
       />
     </div>
   );

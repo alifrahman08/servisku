@@ -16,6 +16,7 @@ import {
   FileText,
   Activity,
   CheckCircle2,
+  Receipt,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -374,14 +375,47 @@ export default async function AdminServiceDetailPage({ params }: Props) {
                 <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
                   <span className="font-bold text-slate-800 block text-[11px]">Riwayat Transaksi:</span>
                   {service.payments.map((p) => (
-                    <div key={p.id} className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 text-[11px]">
+                    <div key={p.id} className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] space-y-1.5">
                       <div className="flex items-center justify-between font-mono font-bold text-slate-800">
-                        <span>{p.invoiceNumber}</span>
+                        <span>{p.receiptNumber || p.invoiceNumber}</span>
                         <span>{formatRupiah(p.amount)}</span>
                       </div>
-                      <div className="mt-1 flex items-center justify-between text-slate-500">
+                      <div className="flex items-center justify-between text-slate-500 text-[10px]">
                         <span>Metode: {p.paymentMethod}</span>
-                        <span>{formatTanggalWaktu(p.paidAt)}</span>
+                        <span>{formatTanggalWaktu(p.paidAt || p.createdAt)}</span>
+                      </div>
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          p.paymentStatus === "PAID"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : p.paymentStatus === "PENDING_VERIFICATION"
+                            ? "bg-amber-100 text-amber-800"
+                            : "bg-rose-100 text-rose-800"
+                        }`}>
+                          {p.paymentStatus === "PAID"
+                            ? "Lunas"
+                            : p.paymentStatus === "PENDING_VERIFICATION"
+                            ? "Menunggu Verifikasi"
+                            : "Ditolak"}
+                        </span>
+
+                        {p.paymentStatus === "PAID" ? (
+                          <Link
+                            href={`/struk/${p.receiptNumber || p.id}`}
+                            target="_blank"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-800"
+                          >
+                            <Receipt className="h-3 w-3" />
+                            Lihat Struk
+                          </Link>
+                        ) : p.paymentStatus === "PENDING_VERIFICATION" ? (
+                          <Link
+                            href="/admin/pembayaran"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 hover:underline"
+                          >
+                            Verifikasi di Menu Pembayaran &rarr;
+                          </Link>
+                        ) : null}
                       </div>
                     </div>
                   ))}

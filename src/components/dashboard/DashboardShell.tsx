@@ -27,6 +27,8 @@ import {
   Clock,
   Search,
   CheckCircle2,
+  CreditCard,
+  Receipt,
   LucideIcon,
 } from "lucide-react";
 
@@ -46,6 +48,8 @@ const iconMap: Record<string, LucideIcon> = {
   Clock,
   Search,
   CheckCircle2,
+  CreditCard,
+  Receipt,
   Dashboard: Wrench,
 };
 

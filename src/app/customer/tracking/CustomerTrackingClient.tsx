@@ -24,6 +24,7 @@ import {
   Check,
   XCircle,
 } from "lucide-react";
+import { CustomerPaymentSection } from "@/components/payment/CustomerPaymentSection";
 
 interface Props {
   service: any | null;
@@ -35,6 +36,13 @@ interface Props {
     status: string;
   }[];
   initialSearch: string;
+  storeSettings?: {
+    bankName: string;
+    bankAccountNumber: string;
+    bankAccountHolder: string;
+    qrisMerchantName: string;
+    qrisImageUrl: string;
+  };
 }
 
 const STAGES = [
@@ -79,6 +87,7 @@ export function CustomerTrackingClient({
   service,
   myServices,
   initialSearch,
+  storeSettings,
 }: Props) {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState(initialSearch);
@@ -134,6 +143,8 @@ export function CustomerTrackingClient({
   const currentStage = service ? getStageIndex(service.status) : 0;
   const isCancelled = service?.status === "CANCELLED";
   const isPaid = service?.payments?.some((p: any) => p.paymentStatus === "PAID");
+  const latestPayment = service?.payments?.[0];
+  const paymentStatus = latestPayment ? latestPayment.paymentStatus : "UNPAID";
 
   return (
     <div className="space-y-6">
@@ -331,13 +342,26 @@ export function CustomerTrackingClient({
                 <p className="mt-0.5 font-bold">
                   {isPaid ? (
                     <span className="text-emerald-700">Lunas Terverifikasi</span>
+                  ) : paymentStatus === "PENDING_VERIFICATION" ? (
+                    <span className="text-amber-700">Menunggu Verifikasi</span>
+                  ) : paymentStatus === "REJECTED" ? (
+                    <span className="text-rose-700">Bukti Ditolak</span>
                   ) : (
-                    <span className="text-amber-700">Belum Lunas (Bayar di Kasir)</span>
+                    <span className="text-slate-700">Belum Dibayar</span>
                   )}
                 </p>
               </div>
             </div>
           </Card>
+
+          {/* CUSTOMER PAYMENT SECTION (Bank Mandiri & QRIS) */}
+          {storeSettings && !isCancelled && (service.finalCost || service.estimatedCost || service.payments?.length > 0) && (
+            <CustomerPaymentSection
+              service={service}
+              storeSettings={storeSettings}
+              onSuccess={() => router.refresh()}
+            />
+          )}
 
           {/* 9-STAGE TIMELINE TRACKER */}
           <Card className="p-6 bg-white">

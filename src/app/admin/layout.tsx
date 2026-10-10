@@ -12,10 +12,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/login");
   }
 
-  // Count pending unassigned services for badge
-  const [unassignedCount, notifications] = await Promise.all([
+  // Count pending unassigned services and pending payments for badge
+  const [unassignedCount, pendingPaymentsCount, notifications] = await Promise.all([
     prisma.serviceRequest.count({
       where: { status: "PENDING", isCancelled: false },
+    }),
+    prisma.payment.count({
+      where: { paymentStatus: "PENDING_VERIFICATION" },
     }),
     prisma.notification.findMany({
       where: { userId: user.id },
@@ -27,6 +30,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const navItems: NavItem[] = [
     { label: "Overview", href: "/admin", iconName: "LayoutDashboard" },
     { label: "Data Servis", href: "/admin/servis", iconName: "Wrench" },
+    {
+      label: "Pembayaran",
+      href: "/admin/pembayaran",
+      iconName: "CreditCard",
+      badge: pendingPaymentsCount > 0 ? pendingPaymentsCount : undefined,
+    },
     { label: "Data Customer", href: "/admin/customer", iconName: "Users" },
     { label: "Data Teknisi", href: "/admin/teknisi", iconName: "UserCheck" },
     {
