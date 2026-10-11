@@ -17,16 +17,10 @@ export async function GET(
     const filename = path.basename(params.filename); // Prevent path traversal
     const filePath = path.join(process.cwd(), "public", "uploads", "proofs", filename);
 
-    // Verify file exists
-    try {
-      await fs.access(filePath);
-    } catch {
-      return new NextResponse("File tidak ditemukan", { status: 404 });
-    }
-
     // Role & ownership check
+    let targetPayment: any = null;
     if (user.role !== "ADMIN") {
-      const payment = await prisma.payment.findFirst({
+      targetPayment = await prisma.payment.findFirst({
         where: {
           OR: [
             { proofUrl: { contains: filename } },
@@ -40,23 +34,53 @@ export async function GET(
         },
       });
 
-      if (!payment || payment.serviceRequest.customerId !== user.id) {
+      if (!targetPayment || targetPayment.serviceRequest.customerId !== user.id) {
         return new NextResponse("Forbidden: Anda tidak memiliki akses ke bukti transfer ini", {
           status: 403,
         });
       }
     }
 
-    const fileBuffer = await fs.readFile(filePath);
+    let fileBuffer: Buffer | null = null;
+    let contentType = "application/octet-stream";
     const ext = path.extname(filename).toLowerCase();
 
-    let contentType = "application/octet-stream";
     if (ext === ".jpg" || ext === ".jpeg") contentType = "image/jpeg";
     else if (ext === ".png") contentType = "image/png";
     else if (ext === ".webp") contentType = "image/webp";
     else if (ext === ".pdf") contentType = "application/pdf";
 
-    return new NextResponse(fileBuffer, {
+    // 1. Try local filesystem (for local dev)
+    try {
+      await fs.access(filePath);
+      fileBuffer = await fs.readFile(filePath);
+    } catch {
+      // 2. Fallback to database stored Data URL (for Vercel serverless environment)
+      if (!targetPayment) {
+        targetPayment = await prisma.payment.findFirst({
+          where: {
+            OR: [
+              { proofFileName: filename },
+              { proofUrl: { contains: filename } },
+            ],
+          },
+        });
+      }
+
+      if (targetPayment?.proofUrl && targetPayment.proofUrl.startsWith("data:")) {
+        const matches = targetPayment.proofUrl.match(/^data:([^;]+);base64,(.+)$/);
+        if (matches) {
+          contentType = matches[1];
+          fileBuffer = Buffer.from(matches[2], "base64");
+        }
+      }
+    }
+
+    if (!fileBuffer) {
+      return new NextResponse("File tidak ditemukan", { status: 404 });
+    }
+
+    return new NextResponse(new Uint8Array(fileBuffer), {
       headers: {
         "Content-Type": contentType,
         "Content-Disposition": `inline; filename="${filename}"`,

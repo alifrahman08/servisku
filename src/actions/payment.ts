@@ -144,11 +144,18 @@ export async function submitPaymentProofAction(formData: FormData) {
     const safeFilename = `proof-${Date.now()}-${crypto.randomBytes(6).toString("hex")}${sanitizedExt}`;
     const uploadDir = path.join(process.cwd(), "public", "uploads", "proofs");
 
-    await fs.mkdir(uploadDir, { recursive: true });
     const buffer = Buffer.from(await file.arrayBuffer());
-    await fs.writeFile(path.join(uploadDir, safeFilename), buffer);
+    let proofUrl = `/api/uploads/proofs/${safeFilename}`;
 
-    const proofUrl = `/api/uploads/proofs/${safeFilename}`;
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+      await fs.writeFile(path.join(uploadDir, safeFilename), buffer);
+    } catch {
+      // On Vercel / serverless environment filesystem is read-only.
+      // Store as persistent Data URL in database directly.
+      const mime = file.type || "image/jpeg";
+      proofUrl = `data:${mime};base64,${buffer.toString("base64")}`;
+    }
 
     // Find if there's an existing pending or rejected payment for this service
     const existingPayment = service.payments.find(

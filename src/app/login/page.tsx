@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { loginAction } from "@/actions/auth";
 import { toast } from "sonner";
-import { Eye, EyeOff, Lock, Mail, ArrowRight, ShieldCheck, Wrench, User } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, ArrowRight } from "lucide-react";
 
 function LoginFormContent() {
   const router = useRouter();
@@ -45,11 +45,6 @@ function LoginFormContent() {
     router.refresh();
   }
 
-  function handleQuickFill(accEmail: string, accPass: string) {
-    setEmail(accEmail);
-    setPassword(accPass);
-    setErrorMessage("");
-  }
 
   return (
     <Card className="shadow-lg shadow-slate-200/50">
@@ -112,75 +107,7 @@ function LoginFormContent() {
         </Button>
       </form>
 
-      {/* Quick Demo Credentials Autofill */}
-      <div className="mt-6 border-t border-slate-100 pt-5 space-y-3">
-        <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">
-          Pilihan Cepat Akun Demo (1-Click Fill)
-        </p>
 
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => handleQuickFill("admin@servisku.com", "admin123456")}
-            className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 text-slate-700 transition text-left"
-          >
-            <ShieldCheck className="h-4 w-4 text-blue-600 shrink-0" />
-            <div>
-              <span className="text-[11px] font-bold block">Admin Workshop</span>
-              <span className="text-[10px] text-slate-400">admin@servisku.com</span>
-            </div>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickFill("ahmad.customer@gmail.com", "customer123")}
-            className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-200 text-slate-700 transition text-left"
-          >
-            <User className="h-4 w-4 text-emerald-600 shrink-0" />
-            <div>
-              <span className="text-[11px] font-bold block">Customer (Ahmad)</span>
-              <span className="text-[10px] text-slate-400">ahmad.customer@...</span>
-            </div>
-          </button>
-        </div>
-
-        <div>
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
-            Login 3 Teknisi Workshop:
-          </span>
-          <div className="grid grid-cols-3 gap-1.5">
-            <button
-              type="button"
-              onClick={() => handleQuickFill("budi.teknisi@servisku.com", "teknisi123")}
-              className="p-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 text-slate-700 transition text-center"
-              title="Budi Santoso - Spesialis Laptop"
-            >
-              <Wrench className="h-3.5 w-3.5 text-indigo-600 mx-auto mb-0.5" />
-              <span className="text-[11px] font-bold block leading-tight">Budi</span>
-              <span className="text-[9px] text-indigo-700 font-medium">Laptop</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill("andi.teknisi@servisku.com", "teknisi123")}
-              className="p-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 text-slate-700 transition text-center"
-              title="Andi Wijaya - Spesialis Smartphone"
-            >
-              <Wrench className="h-3.5 w-3.5 text-indigo-600 mx-auto mb-0.5" />
-              <span className="text-[11px] font-bold block leading-tight">Andi</span>
-              <span className="text-[9px] text-indigo-700 font-medium">Smartphone</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill("dian.teknisi@servisku.com", "teknisi123")}
-              className="p-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 text-slate-700 transition text-center"
-              title="Dian Pratama - Teknisi Umum"
-            >
-              <Wrench className="h-3.5 w-3.5 text-indigo-600 mx-auto mb-0.5" />
-              <span className="text-[11px] font-bold block leading-tight">Dian</span>
-              <span className="text-[9px] text-indigo-700 font-medium">General</span>
-            </button>
-          </div>
-        </div>
-      </div>
 
       <div className="mt-6 text-center text-xs text-slate-600">
         Belum memiliki akun?{" "}
