@@ -35,22 +35,27 @@ export async function getCurrentUser() {
   const session = await getSession();
   if (!session) return null;
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      address: true,
-      isActive: true,
-      technicianProfile: true,
-    },
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        address: true,
+        isActive: true,
+        technicianProfile: true,
+      },
+    });
 
-  if (!user || !user.isActive) return null;
-  return user;
+    if (!user || !user.isActive) return null;
+    return user;
+  } catch (error) {
+    console.error("Failed to fetch current user:", error);
+    return null;
+  }
 }
 
 export async function setSessionCookie(payload: SessionPayload) {
